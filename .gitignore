@@ -5,6 +5,7 @@
 
 # backend
 /backend/bin
+bun.lock
 
 # general
 .DS_Store
