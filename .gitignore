@@ -1,0 +1,10 @@
+# frontend
+/frontend/dist
+/frontend/node_modules
+/frontend/bun.lockb
+
+# backend
+/backend/bin
+
+# general
+.DS_Store
