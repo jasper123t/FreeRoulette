@@ -18,7 +18,9 @@ function App() {
     <div className={styles.container}>
       <TableSelector
         current={table}
-        onSelect={(val: SetStateAction<number>) => setTable(val)}
+        onSelect={(selectedTable: SetStateAction<number>) =>
+          setTable(selectedTable)
+        }
       />
       <div
         className={styles.box}
