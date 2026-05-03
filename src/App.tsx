@@ -1,9 +1,9 @@
-import { useState, type SetStateAction } from 'react'
-import './App.css'
+import { useState, type SetStateAction } from "react";
+import "./App.css";
 
-import { spin } from './utils/roulette'
-import styles from './App.module.css';
-import { TableSelector } from './components/TableSelector';
+import { spin } from "./utils/roulette";
+import styles from "./App.module.css";
+import { TableSelector } from "./components/TableSelector";
 
 function App() {
   const [table, setTable] = useState<number>(0);
@@ -16,17 +16,17 @@ function App() {
 
   return (
     <div className={styles.container}>
-      <TableSelector 
-        current={table} 
-        onSelect={(val: SetStateAction<number>) => setTable(val)} 
+      <TableSelector
+        current={table}
+        onSelect={(val: SetStateAction<number>) => setTable(val)}
       />
-      <div 
-        className={styles.box} 
+      <div
+        className={styles.box}
         // style={{ color: result !== null ? getColor(result) : 'white' }}
       >
-        <span>{result ?? '?'}</span>
+        <span>{result ?? "?"}</span>
       </div>
-      
+
       <button className={styles.spinButton} onClick={callSpin}>
         SPIN THE WHEEL
       </button>
@@ -34,4 +34,4 @@ function App() {
   );
 }
 
-export default App
+export default App;

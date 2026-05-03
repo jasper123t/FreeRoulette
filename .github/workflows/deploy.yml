@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages on master update
 
 on:
   push:
-    branches: [ master ] # Change to 'main' if that is your branch name
+    branches: [master]
 
 permissions:
   contents: write
