@@ -18,4 +18,4 @@ Inspired by my 3 visits to casinos in Sydney, a roulette webapp that wouldn't ma
 ## Vibe Coding Notes
 
 - ai vibed a package,json for me, not very useful
-- ```bun create vite FreeRoulette --template react-ts``` was much more useful than that
+- `bun create vite FreeRoulette --template react-ts` was much more useful than that

@@ -1,4 +1,15 @@
-export const spin = () => {
-    let tiles = 37;
-    return Math.floor(Math.random() * tiles);
+export const spin = (table: number) => {
+  let tiles;
+  switch (table) {
+    case 0:
+      tiles = 37; // European
+      break;
+    case 1:
+      tiles = 38; // American
+      break;
+    default:
+      tiles = 37;
+      break;
+  }
+  return Math.floor(Math.random() * tiles);
 };
