@@ -1,30 +1,30 @@
 import styles from "./TableSelector.module.css";
 
 type TableSelectorProps = {
-  current: number;
-  onSelect: (value: number) => void;
+  current: "EU" | "US";
+  onSelect: (value: "EU" | "US") => void;
 };
 
 export const TableSelector = ({ current, onSelect }: TableSelectorProps) => {
   return (
     <div className={styles.wrapper}>
       <button
-        className={`${styles.option} ${current === 0 ? styles.active : ""}`}
-        onClick={() => onSelect(0)}
+        className={`${styles.option} ${current === "EU" ? styles.active : ""}`}
+        onClick={() => onSelect("EU")}
       >
         European
       </button>
 
       <button
-        className={`${styles.option} ${current === 1 ? styles.active : ""}`}
-        onClick={() => onSelect(1)}
+        className={`${styles.option} ${current === "US" ? styles.active : ""}`}
+        onClick={() => onSelect("US")}
       >
         American
       </button>
 
       <button
         className={styles.option}
-        disabled // This greys it out and blocks clicks
+        disabled // grey out and block clicks
       >
         Custom (soon)
       </button>
