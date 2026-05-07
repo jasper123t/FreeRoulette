@@ -106,30 +106,37 @@ const RouletteWheel = forwardRef<
   return (
     <div
       style={{
-        width: "300px",
-        height: "300px",
+        width: "100%",
+        maxWidth: "300px",
+        aspectRatio: "1 / 1",
         borderRadius: "50%",
         overflow: "hidden", // prevent stretching
         margin: "0 auto", // center horizontally
+        // backgroundColor: "rgba(0,0,255,1)"
       }}
     >
       <svg
         ref={svgRef}
-        width="300"
-        height="300"
         viewBox="0 0 300 300"
         style={{
+          width: "100%",
+          height: "100%",
           transform: `rotate(${rotation}deg)`,
           transition: isDragging
             ? "none"
             : `transform ${spinTimeSecond}s cubic-bezier(0, 1, 0, 1)`,
-          transformBox: "fill-box",
-          transformOrigin: "center",
-          clipPath: "url(#circleMask)",
           // backgroundColor: "rgba(255, 0, 255, 1)", // color for debugging
           // outline: "1px solid rgba(255, 128, 255, 0.5)", // box for debugging
         }}
       >
+        <circle // outer ring
+          cx="150"
+          cy="150"
+          r="145"
+          stroke="#D4AF37"
+          strokeWidth="10"
+          fill="none"
+        />
         {Array.from({ length: tileCount }, (_, i) => {
           let fillColor =
             (i + Number(tableType === "EU")) % 2 === 0 ? "red" : "black";
@@ -149,20 +156,34 @@ const RouletteWheel = forwardRef<
           }
 
           // place number at 12 o'clock, then rotate to tile angle
-          const textPos = polarToCartesian(150, 150, 120, 0);
+          const textPos = polarToCartesian(150, 150, 135, 0);
           return (
             <g key={i}>
               <path
                 d={describeRingSlice(
                   150,
                   150,
-                  100,
-                  140,
+                  125,
+                  145,
                   i * angleStep,
                   (i + 1) * angleStep,
                 )}
                 fill={fillColor}
-                stroke="white"
+                stroke="#D4AF37"
+                strokeWidth="2"
+              />
+              <path
+                d={describeRingSlice(
+                  150,
+                  150,
+                  105,
+                  125,
+                  i * angleStep,
+                  (i + 1) * angleStep,
+                )}
+                fill={fillColor}
+                stroke="#D4AF37"
+                strokeWidth={3}
               />
               <text
                 x={textPos.x}
