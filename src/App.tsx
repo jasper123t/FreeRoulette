@@ -26,6 +26,7 @@ function App() {
         onSelect={(selectedTable: SetStateAction<"EU" | "US">) =>
           setTable(selectedTable)
         }
+        isSpinning={isSpinning}
       />
       <RouletteWheel
         ref={wheelRef}
@@ -35,7 +36,7 @@ function App() {
       />
       <div
         className={styles.box}
-        // style={{ color: result !== null ? getColor(result) : 'white' }} // todo getColor
+      // style={{ color: result !== null ? getColor(result) : 'white' }} // todo getColor
       >
         {/* <span>{result ?? "?"}</span> */}
         <span>"?"</span>
@@ -45,6 +46,7 @@ function App() {
         className={styles.spinButton}
         onClick={callSpin}
         disabled={isSpinning}
+        style={{ cursor: isSpinning ? "not-allowed" : "pointer" }}
       >
         {isSpinning ? "Spinning..." : "SPIN THE WHEEL"}
       </button>
