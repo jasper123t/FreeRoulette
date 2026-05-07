@@ -46,12 +46,17 @@ const RouletteWheel = forwardRef<
   }, []);
 
   useEffect(() => {
-    const handleGlobalMouseMove = (e: MouseEvent) => {
+    const handleGlobalMouseMove = (e: MouseEvent | TouchEvent) => {
       if (!isDragging) return;
-      const angle = getAngle(e.clientX, e.clientY); // 0 is at 3 o'clock
-      // console.log(
-      //   "x:\t" + e.clientX + "\ty:\t" + e.clientY + "\tangle:\t" + angle,
-      // );
+
+      let angle = 0; // 0 is at 3 o'clock
+      if ("touches" in e && e.touches.length > 0) {
+        angle = getAngle(e.touches[0].clientX, e.touches[0].clientY);
+      } else if ("clientX" in e) {
+        angle = getAngle(e.clientX, e.clientY);
+      }
+      // console.log("angle:\t" + angle);
+
       if (lastAngleRef.current !== null) {
         let delta = angle - lastAngleRef.current;
         if (delta > 180) delta -= 360;
@@ -72,11 +77,15 @@ const RouletteWheel = forwardRef<
       document.body.style.cursor = "grabbing";
       window.addEventListener("mousemove", handleGlobalMouseMove);
       window.addEventListener("mouseup", handleGlobalMouseUp);
+      window.addEventListener("touchmove", handleGlobalMouseMove);
+      window.addEventListener("touchend", handleGlobalMouseUp);
     }
 
     return () => {
       window.removeEventListener("mousemove", handleGlobalMouseMove);
       window.removeEventListener("mouseup", handleGlobalMouseUp);
+      window.removeEventListener("touchmove", handleGlobalMouseMove);
+      window.removeEventListener("touchend", handleGlobalMouseUp);
     };
   }, [getAngle, isDragging]);
 
@@ -95,105 +104,124 @@ const RouletteWheel = forwardRef<
   }));
 
   return (
-    <svg
-      ref={svgRef}
-      width="300"
-      height="300"
-      viewBox="0 0 300 300"
+    <div
       style={{
-        transform: `rotate(${rotation}deg)`,
-        transition: isDragging
-          ? "none"
-          : `transform ${spinTimeSecond}s cubic-bezier(0, 1, 0, 1)`,
-        transformBox: "fill-box",
-        transformOrigin: "center",
-        clipPath: "url(#circleMask)",
-        // backgroundColor: "rgba(255, 0, 255, 1)", // color for debugging
-        // outline: "1px solid rgba(255, 128, 255, 0.5)", // box for debugging
+        width: "300px",
+        height: "300px",
+        borderRadius: "50%",
+        overflow: "hidden", // prevent stretching
+        margin: "0 auto", // center horizontally
       }}
     >
-      {Array.from({ length: tileCount }, (_, i) => {
-        let fillColor =
-          (i + Number(tableType === "EU")) % 2 === 0 ? "red" : "black";
-        if (tableType === "EU" && i === 0) {
-          fillColor = "green";
-        }
-        if (tableType === "US" && (i === 0 || i === 19)) {
-          fillColor = "green";
-        }
-
-        let label: string;
-        // label = i.toString(); // for debug
-        if (tableType === "EU") {
-          label = europeanSequence[i];
-        } else {
-          label = americanSequence[i];
-        }
-
-        // place number at 12 o'clock, then rotate to tile angle
-        const textPos = polarToCartesian(150, 150, 120, 0);
-        return (
-          <g key={i}>
-            <path
-              d={describeRingSlice(
-                150,
-                150,
-                100,
-                140,
-                i * angleStep,
-                (i + 1) * angleStep,
-              )}
-              fill={fillColor}
-              stroke="white"
-            />
-            <text
-              x={textPos.x}
-              y={textPos.y}
-              textAnchor="middle"
-              dominantBaseline="middle"
-              fontSize="12"
-              fill="white"
-              fontWeight="bold"
-              // fontFamily="Arial, sans-serif" // later
-              style={{ userSelect: "none" }}
-              transform={`rotate(${(i + 0.5) * angleStep}, 150, 150)`}
-            >
-              {label}
-            </text>
-          </g>
-        );
-      })}
-      <circle
-        cx="150"
-        cy="150"
-        r="1"
-        // fill="red" // center for debugging
-      />
-      <circle // hitbox circle
-        cx="150"
-        cy="150"
-        r="150"
-        fill="rgba(255,165,0,0)" // color for debug
-        pointerEvents="visiblePainted" // only the circle area is clickable
-        onMouseDown={(e) => {
-          setIsMouseDown(true);
-          if (!isSpinning) {
-            setIsDragging(true);
-            lastAngleRef.current = getAngle(e.clientX, e.clientY);
-          }
-        }}
-        onMouseUp={() => {
-          setIsMouseDown(false);
-        }}
+      <svg
+        ref={svgRef}
+        width="300"
+        height="300"
+        viewBox="0 0 300 300"
         style={{
-          cursor: isSpinning
-            ? "not-allowed"
-            : isMouseDown
-              ? "grabbing"
-              : "grab",
+          transform: `rotate(${rotation}deg)`,
+          transition: isDragging
+            ? "none"
+            : `transform ${spinTimeSecond}s cubic-bezier(0, 1, 0, 1)`,
+          transformBox: "fill-box",
+          transformOrigin: "center",
+          clipPath: "url(#circleMask)",
+          // backgroundColor: "rgba(255, 0, 255, 1)", // color for debugging
+          // outline: "1px solid rgba(255, 128, 255, 0.5)", // box for debugging
         }}
-      />
-    </svg>
+      >
+        {Array.from({ length: tileCount }, (_, i) => {
+          let fillColor =
+            (i + Number(tableType === "EU")) % 2 === 0 ? "red" : "black";
+          if (tableType === "EU" && i === 0) {
+            fillColor = "green";
+          }
+          if (tableType === "US" && (i === 0 || i === 19)) {
+            fillColor = "green";
+          }
+
+          let label: string;
+          // label = i.toString(); // for debug
+          if (tableType === "EU") {
+            label = europeanSequence[i];
+          } else {
+            label = americanSequence[i];
+          }
+
+          // place number at 12 o'clock, then rotate to tile angle
+          const textPos = polarToCartesian(150, 150, 120, 0);
+          return (
+            <g key={i}>
+              <path
+                d={describeRingSlice(
+                  150,
+                  150,
+                  100,
+                  140,
+                  i * angleStep,
+                  (i + 1) * angleStep,
+                )}
+                fill={fillColor}
+                stroke="white"
+              />
+              <text
+                x={textPos.x}
+                y={textPos.y}
+                textAnchor="middle"
+                dominantBaseline="middle"
+                fontSize="12"
+                fill="white"
+                fontWeight="bold"
+                // fontFamily="Arial, sans-serif" // later
+                style={{ userSelect: "none" }}
+                transform={`rotate(${(i + 0.5) * angleStep}, 150, 150)`}
+              >
+                {label}
+              </text>
+            </g>
+          );
+        })}
+        <circle // center for debugging
+          cx="150"
+          cy="150"
+          r="1"
+          fill="rgba(255,0,0,0)"
+        />
+        <circle // hitbox circle
+          cx="150"
+          cy="150"
+          r="150"
+          fill="rgba(255,165,0,0)" // color for debug
+          pointerEvents="visiblePainted" // only the circle area is clickable
+          onMouseDown={() => {
+            setIsMouseDown(true);
+            if (!isSpinning) {
+              setIsDragging(true);
+            }
+          }}
+          onTouchStart={() => {
+            setIsMouseDown(true);
+            if (!isSpinning) {
+              setIsDragging(true);
+            }
+          }}
+
+          onMouseUp={() => {
+            setIsMouseDown(false);
+          }}
+          style={{
+            cursor: isSpinning
+              ? "not-allowed"
+              : isMouseDown
+                ? "grabbing"
+                : "grab",
+          }}
+          onTouchEnd={() => {
+            setIsMouseDown(false)
+          }}
+        />
+      </svg>
+    </div>
   );
 });
 
