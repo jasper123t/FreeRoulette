@@ -31,6 +31,7 @@ function App() {
         ref={wheelRef}
         tableType={table}
         onSpinEnd={() => setIsSpinning(false)}
+        isSpinning={isSpinning}
       />
       <div
         className={styles.box}

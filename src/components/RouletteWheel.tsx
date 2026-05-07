@@ -1,4 +1,11 @@
-import { useImperativeHandle, useState, forwardRef } from "react";
+import {
+  useImperativeHandle,
+  useState,
+  useRef,
+  forwardRef,
+  useEffect,
+  useCallback,
+} from "react";
 import seedrandom from "seedrandom";
 
 const RouletteWheel = forwardRef<
@@ -6,13 +13,72 @@ const RouletteWheel = forwardRef<
   {
     tableType: "EU" | "US";
     onSpinEnd: () => void;
+    isSpinning: boolean;
   }
->(({ tableType, onSpinEnd }, ref) => {
+>(({ tableType, onSpinEnd, isSpinning }, ref) => {
   const [rotation, setRotation] = useState(0);
   const tileCount = tableType === "EU" ? 37 : 38;
   const angleStep = 360 / tileCount;
   const spinTimeSecond = 10;
   const rand = seedrandom(Date.now().toString());
+
+  const [isDragging, setIsDragging] = useState(false);
+  const [isMouseDown, setIsMouseDown] = useState(false);
+  const svgRef = useRef<SVGSVGElement>(null);
+  const lastAngleRef = useRef<number | null>(null);
+
+  const getAngle = useCallback((clientX: number, clientY: number) => {
+    const rect = svgRef.current!.getBoundingClientRect();
+
+    // Compute center of wheel to avoid flexbox related issues
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+
+    // Mouse position relative to center
+    const dx = clientX - centerX;
+    const dy = clientY - centerY;
+    // console.log(
+    //   // "\tx:\t" + centerX + "\ty:\t" + centerY,
+    //   //  +
+    //   // "\tdx:\t" + dx + "\tdy:\t" + dy, // xy might be off due to flexbox or smt // seems fixed
+    // );
+    return (Math.atan2(dy, dx) * 180) / Math.PI;
+  }, []);
+
+  useEffect(() => {
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      if (!isDragging) return;
+      const angle = getAngle(e.clientX, e.clientY); // 0 is at 3 o'clock
+      // console.log(
+      //   "x:\t" + e.clientX + "\ty:\t" + e.clientY + "\tangle:\t" + angle,
+      // );
+      if (lastAngleRef.current !== null) {
+        let delta = angle - lastAngleRef.current;
+        if (delta > 180) delta -= 360;
+        if (delta < -180) delta += 360;
+        setRotation((r) => r + delta);
+      }
+      lastAngleRef.current = angle;
+    };
+
+    const handleGlobalMouseUp = () => {
+      setIsDragging(false);
+      setIsMouseDown(false);
+      document.body.style.cursor = "auto";
+      lastAngleRef.current = null;
+    };
+
+    if (isDragging) {
+      document.body.style.cursor = "grabbing";
+      window.addEventListener("mousemove", handleGlobalMouseMove);
+      window.addEventListener("mouseup", handleGlobalMouseUp);
+    }
+
+    return () => {
+      window.removeEventListener("mousemove", handleGlobalMouseMove);
+      window.removeEventListener("mouseup", handleGlobalMouseUp);
+    };
+  }, [getAngle, isDragging]);
 
   // Expose spin() to parent
   useImperativeHandle(ref, () => ({
@@ -30,19 +96,23 @@ const RouletteWheel = forwardRef<
 
   return (
     <svg
-      width="500"
-      height="500"
+      ref={svgRef}
+      width="300"
+      height="300"
       viewBox="0 0 300 300"
       style={{
         transform: `rotate(${rotation}deg)`,
-        transition: `transform ${spinTimeSecond}s cubic-bezier(0, 1, 0, 1)`,
+        transition: isDragging
+          ? "none"
+          : `transform ${spinTimeSecond}s cubic-bezier(0, 1, 0, 1)`,
         transformBox: "fill-box",
         transformOrigin: "center",
         clipPath: "url(#circleMask)",
+        // backgroundColor: "rgba(255, 0, 255, 1)", // color for debugging
+        // outline: "1px solid rgba(255, 128, 255, 0.5)", // box for debugging
       }}
     >
       {Array.from({ length: tileCount }, (_, i) => {
-        // Decide fill color
         let fillColor =
           (i + Number(tableType === "EU")) % 2 === 0 ? "red" : "black";
         if (tableType === "EU" && i === 0) {
@@ -52,7 +122,6 @@ const RouletteWheel = forwardRef<
           fillColor = "green";
         }
 
-        // Decide label text
         let label: string;
         // label = i.toString(); // for debug
         if (tableType === "EU") {
@@ -84,6 +153,9 @@ const RouletteWheel = forwardRef<
               dominantBaseline="middle"
               fontSize="12"
               fill="white"
+              fontWeight="bold"
+              // fontFamily="Arial, sans-serif" // later
+              style={{ userSelect: "none" }}
               transform={`rotate(${(i + 0.5) * angleStep}, 150, 150)`}
             >
               {label}
@@ -91,6 +163,36 @@ const RouletteWheel = forwardRef<
           </g>
         );
       })}
+      <circle
+        cx="150"
+        cy="150"
+        r="1"
+        // fill="red" // center for debugging
+      />
+      <circle // hitbox circle
+        cx="150"
+        cy="150"
+        r="150"
+        fill="rgba(255,165,0,0)" // color for debug
+        pointerEvents="visiblePainted" // only the circle area is clickable
+        onMouseDown={(e) => {
+          setIsMouseDown(true);
+          if (!isSpinning) {
+            setIsDragging(true);
+            lastAngleRef.current = getAngle(e.clientX, e.clientY);
+          }
+        }}
+        onMouseUp={() => {
+          setIsMouseDown(false);
+        }}
+        style={{
+          cursor: isSpinning
+            ? "not-allowed"
+            : isMouseDown
+              ? "grabbing"
+              : "grab",
+        }}
+      />
     </svg>
   );
 });
