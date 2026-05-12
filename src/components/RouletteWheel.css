@@ -1,0 +1,62 @@
+@keyframes ballSpinFast {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(3600deg);
+  }
+}
+
+@keyframes ballSpinSlow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(3600deg);
+  }
+}
+
+@keyframes ballSpinBounce {
+  0% {
+    transform: rotate(0deg);
+  }
+  10% {
+    transform: rotate(2.5deg);
+  }
+  20% {
+    transform: rotate(-2.5deg);
+  }
+  30% {
+    transform: rotate(2deg);
+  }
+  40% {
+    transform: rotate(-2deg);
+  }
+  50% {
+    transform: rotate(1.5deg);
+  }
+  60% {
+    transform: rotate(-1.5deg);
+  }
+  70% {
+    transform: rotate(1deg);
+  }
+  80% {
+    transform: rotate(-1deg);
+  }
+  90% {
+    transform: rotate(0.5deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+.ballAnimate {
+  transform-origin: 150px 150px;
+  animation:
+    ballSpinFast 5s linear forwards,
+    ballSpinSlow 9s ease-out forwards,
+    ballSpinBounce 1.5s ease-out forwards;
+  animation-delay: 0s, 5s, 14s;
+}

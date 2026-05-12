@@ -7,6 +7,7 @@ import {
   useCallback,
 } from "react";
 import seedrandom from "seedrandom";
+import "./RouletteWheel.css";
 
 const RouletteWheel = forwardRef<
   { spin: () => void },
@@ -17,6 +18,9 @@ const RouletteWheel = forwardRef<
   }
 >(({ tableType, onSpinEnd, isSpinning }, ref) => {
   const [rotation, setRotation] = useState(0);
+
+  const [ballAngle, setBallAngle] = useState({ EU: 0, US: 0 });
+
   const tileCount = tableType === "EU" ? 37 : 38;
   const angleStep = 360 / tileCount;
   const spinTimeSecond = 10;
@@ -94,17 +98,33 @@ const RouletteWheel = forwardRef<
     spin() {
       setRotation((r) => r - (spinTimeSecond + rand()) * 360 * 3);
 
+      // setBallAngle((a) => a + (spinTimeSecond + rand()) * 360 * 5);
+
+      const updateBallAngle = (delta: number) => {
+        setBallAngle((prev) => ({
+          ...prev,
+          [tableType]: prev[tableType] + delta,
+        }));
+      };
+      // updateBallAngle((spinTimeSecond + rand()) * 360 * 5);
+      updateBallAngle(360);
+
       setTimeout(
         () => {
           onSpinEnd();
         },
-        spinTimeSecond * 1000 + 500 + 100, // ball stop after 500ms, button re-enable after 100ms
+        spinTimeSecond * 1000 + 5000 + 100, // ball stop after 500ms, button re-enable after 100ms
       );
     },
   }));
 
+  const center = 150;
+  const slotRadius = 115;
+  const ballX = center;
+  const ballY = center - slotRadius; // 12 o'clock position
+
   return (
-    <div
+    <div // container
       style={{
         width: "100%",
         maxWidth: "300px",
@@ -115,7 +135,7 @@ const RouletteWheel = forwardRef<
         // backgroundColor: "rgba(0,0,255,1)"
       }}
     >
-      <svg
+      <svg // circle
         ref={svgRef}
         viewBox="0 0 300 300"
         style={{
@@ -137,7 +157,7 @@ const RouletteWheel = forwardRef<
           strokeWidth="10"
           fill="none"
         />
-        {Array.from({ length: tileCount }, (_, i) => {
+        {Array.from({ length: tileCount }, (_, i) => { // tiles
           let fillColor =
             (i + Number(tableType === "EU")) % 2 === 0 ? "red" : "black";
           if (tableType === "EU" && i === 0) {
@@ -159,7 +179,7 @@ const RouletteWheel = forwardRef<
           const textPos = polarToCartesian(150, 150, 135, 0);
           return (
             <g key={i}>
-              <path
+              <path // number part
                 d={describeRingSlice(
                   150,
                   150,
@@ -172,7 +192,7 @@ const RouletteWheel = forwardRef<
                 stroke="#D4AF37"
                 strokeWidth="2"
               />
-              <path
+              <path // slot part
                 d={describeRingSlice(
                   150,
                   150,
@@ -185,7 +205,7 @@ const RouletteWheel = forwardRef<
                 stroke="#D4AF37"
                 strokeWidth={3}
               />
-              <text
+              <text // number text
                 x={textPos.x}
                 y={textPos.y}
                 textAnchor="middle"
@@ -208,6 +228,39 @@ const RouletteWheel = forwardRef<
           r="1"
           fill="rgba(255,0,0,0)"
         />
+        <g // for spinning ball
+          className={isSpinning ? "ballAnimate" : ""}
+          style={{
+            // transform: `rotate(${ballAngle[tableType]}deg)`,
+            transformOrigin: "150px 150px",
+            // transition: `transform ${spinTimeSecond}s ease-out`,
+            // transition: `transform ${spinTimeSecond - 0.5}s cubic-bezier(0, 1, 0, 1)`
+
+            // transition: isDragging || !isSpinning
+            //   ? "none"
+            //   : `transform ${spinTimeSecond - 0.5}s cubic-bezier(0, 1, 0, 1)`,
+
+            // animation: `
+            //   ballSpinFast 2s linear forwards,
+            //   ballSpinSlow 3s ease-out forwards,
+            //   ballSpinBounce 2s ease-in-out forwards
+            // `,
+            // animationDelay: "0s, 2s, 5s", // start times for each phase
+
+            transform: `rotate(${ballAngle[tableType]}deg)`,
+            transition: isDragging || !isSpinning ? "none" : undefined,
+
+          }}
+        >
+          <circle // ball
+            cx={ballX}
+            cy={ballY}
+            r={5}
+            fill="white"
+            stroke="black"
+            transform={`rotate(${0.5 * angleStep}, 150, 150)`} // initialise to slot 0
+          />
+        </g>
         <circle // hitbox circle
           cx="150"
           cy="150"
