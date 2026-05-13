@@ -1,4 +1,4 @@
-import { useRef, useState, type SetStateAction } from "react";
+import { useRef, useState, useCallback, type SetStateAction } from "react";
 import "./App.css";
 
 // import { spin } from "./utils/roulette"; //deprecated
@@ -8,9 +8,13 @@ import RouletteWheel from "./components/RouletteWheel";
 
 function App() {
   const [table, setTable] = useState<"EU" | "US">("EU");
-  const [result, setResult] = useState<string | null>(null);
+  const [boxResult, setBoxResult] = useState<{ EU: string | null, US: string | null }>({ EU: null, US: null })
   const [isSpinning, setIsSpinning] = useState(false);
   const wheelRef = useRef<{ spin: () => void }>(null);
+
+  const handleTableResult = useCallback((result: string) => {
+    setBoxResult(prev => ({ ...prev, [table]: result }));
+  }, [table]);
 
   const callSpin = () => {
     if (!isSpinning) {
@@ -33,13 +37,13 @@ function App() {
         tableType={table}
         onSpinEnd={() => setIsSpinning(false)}
         isSpinning={isSpinning}
-        onResult={setResult}
+        onTableResult={handleTableResult}
       />
       <div
         className={styles.box}
       // style={{ color: result !== null ? getColor(result) : 'white' }} // todo getColor
       >
-        <span>{result ?? "?"}</span>
+        <span>{boxResult[table] ?? "?"}</span>
       </div>
 
       <button

@@ -15,13 +15,14 @@ const RouletteWheel = forwardRef<
     tableType: "EU" | "US";
     onSpinEnd: () => void;
     isSpinning: boolean;
-    onResult?: (result: string) => void;
+    onTableResult?: (result: string) => void;
   }
->(({ tableType, onSpinEnd, isSpinning, onResult }, ref) => {
+>(({ tableType, onSpinEnd, isSpinning, onTableResult }, ref) => {
   const [rotation, setRotation] = useState(0);
 
   const [ballAngle, setBallAngle] = useState({ EU: 0, US: 0 });
   const [ballPhase, setBallPhase] = useState<0 | 1 | 2 | 3>(0);
+  const [tableResult, setTableResult] = useState<string | null>(null);
 
   const tileCount = tableType === "EU" ? 37 : 38;
   const angleStep = 360 / tileCount;
@@ -50,6 +51,17 @@ const RouletteWheel = forwardRef<
     // );
     return (Math.atan2(dy, dx) * 180) / Math.PI;
   }, []);
+
+  const onTableResultRef = useRef(onTableResult);
+  useEffect(() => {
+    onTableResultRef.current = onTableResult;
+  }, [onTableResult]);
+
+  useEffect(() => {
+    if (tableResult !== null) {
+      onTableResultRef.current?.(tableResult);
+    }
+  }, [tableResult]);
 
   useEffect(() => {
     const handleGlobalMouseMove = (e: MouseEvent | TouchEvent) => {
@@ -109,9 +121,9 @@ const RouletteWheel = forwardRef<
 
             const tileNumber = Math.round(((current + correction) % 360) / angleStep)
             const activeSequence = tableType === "EU" ? europeanSequence : americanSequence
-            const result = activeSequence[tileNumber]
-            // Pass result to parent
-            onResult?.(result);
+            const spinResult = activeSequence[tileNumber]
+            // Defer result update to next tick to avoid render phase update
+            setTimeout(() => setTableResult(spinResult), 0);
             return {
               ...prev,
               [tableType]: current + correction,
