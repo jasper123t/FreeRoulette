@@ -8,7 +8,7 @@ import RouletteWheel from "./components/RouletteWheel";
 
 function App() {
   const [table, setTable] = useState<"EU" | "US">("EU");
-  // const [result, setResult] = useState<number | null>(null); // might need to redo logic
+  const [result, setResult] = useState<string | null>(null);
   const [isSpinning, setIsSpinning] = useState(false);
   const wheelRef = useRef<{ spin: () => void }>(null);
 
@@ -33,13 +33,13 @@ function App() {
         tableType={table}
         onSpinEnd={() => setIsSpinning(false)}
         isSpinning={isSpinning}
+        onResult={setResult}
       />
       <div
         className={styles.box}
       // style={{ color: result !== null ? getColor(result) : 'white' }} // todo getColor
       >
-        {/* <span>{result ?? "?"}</span> */}
-        <span>"?"</span>
+        <span>{result ?? "?"}</span>
       </div>
 
       <button
