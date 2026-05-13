@@ -15,11 +15,14 @@ const RouletteWheel = forwardRef<
     tableType: "EU" | "US";
     onSpinEnd: () => void;
     isSpinning: boolean;
+    onTableResult?: (result: string) => void;
   }
->(({ tableType, onSpinEnd, isSpinning }, ref) => {
+>(({ tableType, onSpinEnd, isSpinning, onTableResult }, ref) => {
   const [rotation, setRotation] = useState(0);
 
   const [ballAngle, setBallAngle] = useState({ EU: 0, US: 0 });
+  const [ballPhase, setBallPhase] = useState<0 | 1 | 2 | 3>(0);
+  const [tableResult, setTableResult] = useState<string | null>(null);
 
   const tileCount = tableType === "EU" ? 37 : 38;
   const angleStep = 360 / tileCount;
@@ -48,6 +51,17 @@ const RouletteWheel = forwardRef<
     // );
     return (Math.atan2(dy, dx) * 180) / Math.PI;
   }, []);
+
+  const onTableResultRef = useRef(onTableResult);
+  useEffect(() => {
+    onTableResultRef.current = onTableResult;
+  }, [onTableResult]);
+
+  useEffect(() => {
+    if (tableResult !== null) {
+      onTableResultRef.current?.(tableResult);
+    }
+  }, [tableResult]);
 
   useEffect(() => {
     const handleGlobalMouseMove = (e: MouseEvent | TouchEvent) => {
@@ -98,22 +112,48 @@ const RouletteWheel = forwardRef<
     spin() {
       setRotation((r) => r - (spinTimeSecond + rand()) * 360 * 3);
 
-      // setBallAngle((a) => a + (spinTimeSecond + rand()) * 360 * 5);
+      const updateBallAngle = (delta: number | "correct") => {
+        setBallAngle((prev) => {
+          const current = prev[tableType];
+          if (delta === "correct") {
 
-      const updateBallAngle = (delta: number) => {
-        setBallAngle((prev) => ({
-          ...prev,
-          [tableType]: prev[tableType] + delta,
-        }));
+            const correction = Math.round(current / angleStep) * angleStep - current
+
+            const tileNumber = Math.round(((current + correction) % 360) / angleStep)
+            const activeSequence = tableType === "EU" ? europeanSequence : americanSequence
+            const spinResult = activeSequence[tileNumber]
+            // Defer result update to next tick to avoid render phase update
+            setTimeout(() => setTableResult(spinResult), 0);
+            return {
+              ...prev,
+              [tableType]: current + correction,
+            };
+          } else {
+            return {
+              ...prev,
+              [tableType]: current + delta,
+            };
+          }
+        });
       };
-      // updateBallAngle((spinTimeSecond + rand()) * 360 * 5);
-      updateBallAngle(360);
+      setBallPhase(1);
+      updateBallAngle(5 * 360);
+
+      setTimeout(() => {
+        setBallPhase(2);
+        updateBallAngle((spinTimeSecond + rand()) * 360);
+      }, 5000);
+
+      setTimeout(() => {
+        setBallPhase(3);
+        updateBallAngle("correct");
+      }, 5000 + 9000);
 
       setTimeout(
         () => {
           onSpinEnd();
         },
-        spinTimeSecond * 1000 + 5000 + 100, // ball stop after 500ms, button re-enable after 100ms
+        spinTimeSecond * 1000 + 5000 + 600, // ball stop after 15.5s, button re-enable after 15.6s
       );
     },
   }));
@@ -229,7 +269,7 @@ const RouletteWheel = forwardRef<
           fill="rgba(255,0,0,0)"
         />
         <g // for spinning ball
-          className={isSpinning ? "ballAnimate" : ""}
+          // className={isSpinning ? "ballAnimate" : ""}
           style={{
             // transform: `rotate(${ballAngle[tableType]}deg)`,
             transformOrigin: "150px 150px",
@@ -248,7 +288,16 @@ const RouletteWheel = forwardRef<
             // animationDelay: "0s, 2s, 5s", // start times for each phase
 
             transform: `rotate(${ballAngle[tableType]}deg)`,
-            transition: isDragging || !isSpinning ? "none" : undefined,
+            // transition: isDragging || !isSpinning ? "none" : undefined,
+            transition:
+              !isSpinning ? "none" :
+                ballPhase === 1
+                  ? "transform 5s linear"
+                  : ballPhase === 2
+                    ? "transform 9s ease-out"
+                    : ballPhase === 3
+                      ? "transform 1.5s cubic-bezier(.68,-0.55,.27,1.55)" // bounce
+                      : "none",
 
           }}
         >
