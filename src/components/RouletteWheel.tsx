@@ -7,7 +7,7 @@ import {
   useCallback,
 } from "react";
 import seedrandom from "seedrandom";
-import "./RouletteWheel.css";
+import styles from "./RouletteWheel.module.css";
 
 const RouletteWheel = forwardRef<
   { spin: () => void },
@@ -164,7 +164,7 @@ const RouletteWheel = forwardRef<
   const ballY = center - slotRadius; // 12 o'clock position
 
   return (
-    <div // container
+    <div className={styles.wheelContainer}// container
       style={{
         width: "100%",
         maxWidth: "300px",

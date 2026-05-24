@@ -60,3 +60,7 @@
     ballSpinBounce 1.5s ease-out forwards;
   animation-delay: 0s, 5s, 14s;
 }
+
+.wheelContainer {
+  overscroll-behavior: contain;
+}
