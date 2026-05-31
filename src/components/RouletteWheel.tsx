@@ -107,6 +107,19 @@ const RouletteWheel = forwardRef<
     };
   }, [getAngle, isDragging]);
 
+  const handleWheel = (e: React.WheelEvent<SVGCircleElement>) => {
+    // find which half of the wheel the pointer is in
+    const rect = svgRef.current!.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const isLeftHalf = e.clientX < centerX;
+
+    let step = e.deltaY / 20;
+    if (!isLeftHalf) {
+      step = -step;
+    }
+    setRotation(prev => prev + step);
+  };
+
   // Expose spin() to parent
   useImperativeHandle(ref, () => ({
     spin() {
@@ -182,9 +195,9 @@ const RouletteWheel = forwardRef<
           width: "100%",
           height: "100%",
           transform: `rotate(${rotation}deg)`,
-          transition: isDragging
-            ? "none"
-            : `transform ${spinTimeSecond}s cubic-bezier(0, 1, 0, 1)`,
+          transition: isSpinning
+            ? `transform ${spinTimeSecond}s cubic-bezier(0, 1, 0, 1)`
+            : "none",
           // backgroundColor: "rgba(255, 0, 255, 1)", // color for debugging
           // outline: "1px solid rgba(255, 128, 255, 0.5)", // box for debugging
         }}
@@ -332,15 +345,18 @@ const RouletteWheel = forwardRef<
           onMouseUp={() => {
             setIsMouseDown(false);
           }}
+          onTouchEnd={() => {
+            setIsMouseDown(false)
+          }}
+
+          onWheel={handleWheel}
+
           style={{
             cursor: isSpinning
               ? "not-allowed"
               : isMouseDown
                 ? "grabbing"
                 : "grab",
-          }}
-          onTouchEnd={() => {
-            setIsMouseDown(false)
           }}
         />
       </svg>
