@@ -349,7 +349,11 @@ const RouletteWheel = forwardRef<
             setIsMouseDown(false)
           }}
 
-          onWheel={handleWheel}
+          onWheel={(e) => {
+            if (!isSpinning) {
+              handleWheel(e);
+            }
+          }}
 
           style={{
             cursor: isSpinning
