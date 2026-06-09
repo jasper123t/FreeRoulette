@@ -190,7 +190,6 @@ const RouletteWheel = forwardRef<
         isMouseDown={isMouseDown}
         tableType={tableType}
         spinTimeSecond={spinTimeSecond}
-        handleWheel={handleWheel}
         onMouseDown={() => {
           setIsMouseDown(true);
           if (!isSpinning) {
@@ -208,6 +207,11 @@ const RouletteWheel = forwardRef<
         }}
         onTouchEnd={() => {
           setIsMouseDown(false);
+        }}
+        onWheel={(e) => {
+          if (!isSpinning) {
+            handleWheel(e);
+          }
         }}
       />
     </div>

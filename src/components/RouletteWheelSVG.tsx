@@ -16,9 +16,9 @@ interface RouletteWheelSVGProps {
   onTouchStart: () => void;
   onMouseUp: () => void;
   onTouchEnd: () => void;
+  onWheel: (e: React.WheelEvent<SVGCircleElement>) => void;
   tableType: "EU" | "US";
   spinTimeSecond: number;
-  handleWheel: (e: React.WheelEvent<SVGCircleElement>) => void;
 }
 
 const RouletteWheelSVG: React.FC<RouletteWheelSVGProps> = ({
@@ -35,9 +35,9 @@ const RouletteWheelSVG: React.FC<RouletteWheelSVGProps> = ({
   onTouchStart,
   onMouseUp,
   onTouchEnd,
+  onWheel,
   tableType,
   spinTimeSecond,
-  handleWheel,
 }) => {
   const center = 150;
   const slotRadius = 115;
@@ -167,11 +167,7 @@ const RouletteWheelSVG: React.FC<RouletteWheelSVGProps> = ({
         onTouchStart={onTouchStart}
         onMouseUp={onMouseUp}
         onTouchEnd={onTouchEnd}
-        onWheel={(e) => {
-          if (!isSpinning) {
-            handleWheel(e);
-          }
-        }}
+        onWheel={onWheel}
         style={{
           cursor: isSpinning
             ? "not-allowed"
