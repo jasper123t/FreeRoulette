@@ -8,13 +8,19 @@ import RouletteWheel from "./components/RouletteWheel";
 
 function App() {
   const [table, setTable] = useState<"EU" | "US">("EU");
-  const [boxResult, setBoxResult] = useState<{ EU: string | null, US: string | null }>({ EU: null, US: null })
+  const [boxResult, setBoxResult] = useState<{
+    EU: string | null;
+    US: string | null;
+  }>({ EU: null, US: null });
   const [isSpinning, setIsSpinning] = useState(false);
   const wheelRef = useRef<{ spin: () => void }>(null);
 
-  const handleTableResult = useCallback((result: string) => {
-    setBoxResult(prev => ({ ...prev, [table]: result }));
-  }, [table]);
+  const handleTableResult = useCallback(
+    (result: string) => {
+      setBoxResult((prev) => ({ ...prev, [table]: result }));
+    },
+    [table],
+  );
 
   const callSpin = () => {
     if (!isSpinning) {
@@ -41,7 +47,7 @@ function App() {
       />
       <div
         className={styles.box}
-      // style={{ color: result !== null ? getColor(result) : 'white' }} // todo getColor
+        // style={{ color: result !== null ? getColor(result) : 'white' }} // todo getColor
       >
         <span>{boxResult[table] ?? "?"}</span>
       </div>

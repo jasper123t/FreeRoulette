@@ -6,7 +6,11 @@ type TableSelectorProps = {
   isSpinning: boolean;
 };
 
-export const TableSelector = ({ current, onSelect, isSpinning }: TableSelectorProps) => {
+export const TableSelector = ({
+  current,
+  onSelect,
+  isSpinning,
+}: TableSelectorProps) => {
   return (
     <div className={styles.wrapper}>
       <button

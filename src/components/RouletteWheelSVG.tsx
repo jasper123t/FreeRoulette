@@ -165,7 +165,11 @@ const RouletteWheelSVG: React.FC<RouletteWheelSVGProps> = ({
         onTouchStart={onTouchStart}
         onMouseUp={onMouseUp}
         onTouchEnd={onTouchEnd}
-        onWheel={handleWheel}
+        onWheel={(e) => {
+          if (!isSpinning) {
+            handleWheel(e);
+          }
+        }}
         style={{
           cursor: isSpinning
             ? "not-allowed"
