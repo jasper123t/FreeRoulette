@@ -27,7 +27,7 @@ const RouletteWheelSVG: React.FC<RouletteWheelSVGProps> = ({
   ballPhase,
   tileCount,
   angleStep,
-  isDragging,
+  // isDragging,
   isSpinning,
   isMouseDown,
   svgRef,
@@ -51,9 +51,11 @@ const RouletteWheelSVG: React.FC<RouletteWheelSVGProps> = ({
       viewBox="0 0 300 300"
       style={{
         transform: `rotate(${rotation}deg)`,
-        transition: isDragging
-          ? "none"
-          : `transform ${spinTimeSecond}s cubic-bezier(0, 1, 0, 1)`,
+        transition: isSpinning
+          ? `transform ${spinTimeSecond}s cubic-bezier(0, 1, 0, 1)`
+          : "none",
+        // backgroundColor: "rgba(255, 0, 255, 1)", // color for debugging
+        // outline: "1px solid rgba(255, 128, 255, 0.5)", // box for debugging
       }}
     >
       <circle // outer ring

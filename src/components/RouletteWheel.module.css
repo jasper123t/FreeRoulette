@@ -67,8 +67,9 @@
   aspect-ratio: 1 / 1;
   border-radius: 50%;
   overflow: hidden;
-  margin: 0 auto;
-  overscroll-behavior: contain;
+  margin: 0 auto; /* prevent stretching*/
+  overscroll-behavior: contain; /*center horizontally*/
+  /* backgroundColor: "rgba(0,0,255,1)" */
 }
 
 /* SVG - Base styles (dynamic transform and transition applied inline) */
@@ -114,7 +115,7 @@
 
 /* Hitbox circle - Base styles (cursor applied inline based on state) */
 .wheelHitbox {
-  pointer-events: visiblePainted;
+  pointer-events: visiblePainted; /*only the circle area is clickable*/
 }
 
 /* Center debug circle */
