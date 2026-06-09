@@ -177,38 +177,23 @@ const RouletteWheel = forwardRef<
   const ballY = center - slotRadius; // 12 o'clock position
 
   return (
-    <div className={styles.wheelContainer}// container
-      style={{
-        width: "100%",
-        maxWidth: "300px",
-        aspectRatio: "1 / 1",
-        borderRadius: "50%",
-        overflow: "hidden", // prevent stretching
-        margin: "0 auto", // center horizontally
-        // backgroundColor: "rgba(0,0,255,1)"
-      }}
-    >
-      <svg // circle
+    <div className={styles.wheelContainer}>
+      <svg
         ref={svgRef}
+        className={styles.wheelSvg}
         viewBox="0 0 300 300"
         style={{
-          width: "100%",
-          height: "100%",
           transform: `rotate(${rotation}deg)`,
-          transition: isSpinning
-            ? `transform ${spinTimeSecond}s cubic-bezier(0, 1, 0, 1)`
-            : "none",
-          // backgroundColor: "rgba(255, 0, 255, 1)", // color for debugging
-          // outline: "1px solid rgba(255, 128, 255, 0.5)", // box for debugging
+          transition: isDragging
+            ? "none"
+            : `transform ${spinTimeSecond}s cubic-bezier(0, 1, 0, 1)`,
         }}
       >
         <circle // outer ring
+          className={styles.outerRing}
           cx="150"
           cy="150"
           r="145"
-          stroke="#D4AF37"
-          strokeWidth="10"
-          fill="none"
         />
         {Array.from({ length: tileCount }, (_, i) => { // tiles
           let fillColor =
@@ -233,6 +218,7 @@ const RouletteWheel = forwardRef<
           return (
             <g key={i}>
               <path // number part
+                className={styles.wheelNumber}
                 d={describeRingSlice(
                   150,
                   150,
@@ -242,10 +228,9 @@ const RouletteWheel = forwardRef<
                   (i + 1) * angleStep,
                 )}
                 fill={fillColor}
-                stroke="#D4AF37"
-                strokeWidth="2"
               />
               <path // slot part
+                className={styles.wheelSlot}
                 d={describeRingSlice(
                   150,
                   150,
@@ -255,10 +240,9 @@ const RouletteWheel = forwardRef<
                   (i + 1) * angleStep,
                 )}
                 fill={fillColor}
-                stroke="#D4AF37"
-                strokeWidth={3}
               />
               <text // number text
+                className={styles.wheelText}
                 x={textPos.x}
                 y={textPos.y}
                 textAnchor="middle"
@@ -267,7 +251,6 @@ const RouletteWheel = forwardRef<
                 fill="white"
                 fontWeight="bold"
                 // fontFamily="Arial, sans-serif" // later
-                style={{ userSelect: "none" }}
                 transform={`rotate(${(i + 0.5) * angleStep}, 150, 150)`}
               >
                 {label}
@@ -276,32 +259,15 @@ const RouletteWheel = forwardRef<
           );
         })}
         <circle // center for debugging
+          className={styles.wheelCenter}
           cx="150"
           cy="150"
           r="1"
-          fill="rgba(255,0,0,0)"
         />
         <g // for spinning ball
-          // className={isSpinning ? "ballAnimate" : ""}
+          className={styles.ballGroup}
           style={{
-            // transform: `rotate(${ballAngle[tableType]}deg)`,
-            transformOrigin: "150px 150px",
-            // transition: `transform ${spinTimeSecond}s ease-out`,
-            // transition: `transform ${spinTimeSecond - 0.5}s cubic-bezier(0, 1, 0, 1)`
-
-            // transition: isDragging || !isSpinning
-            //   ? "none"
-            //   : `transform ${spinTimeSecond - 0.5}s cubic-bezier(0, 1, 0, 1)`,
-
-            // animation: `
-            //   ballSpinFast 2s linear forwards,
-            //   ballSpinSlow 3s ease-out forwards,
-            //   ballSpinBounce 2s ease-in-out forwards
-            // `,
-            // animationDelay: "0s, 2s, 5s", // start times for each phase
-
             transform: `rotate(${ballAngle[tableType]}deg)`,
-            // transition: isDragging || !isSpinning ? "none" : undefined,
             transition:
               !isSpinning ? "none" :
                 ballPhase === 1
@@ -311,24 +277,22 @@ const RouletteWheel = forwardRef<
                     : ballPhase === 3
                       ? "transform 1.5s cubic-bezier(.68,-0.55,.27,1.55)" // bounce
                       : "none",
-
           }}
         >
           <circle // ball
+            className={styles.wheelBall}
             cx={ballX}
             cy={ballY}
             r={5}
-            fill="white"
-            stroke="black"
             transform={`rotate(${0.5 * angleStep}, 150, 150)`} // initialise to slot 0
           />
         </g>
         <circle // hitbox circle
+          className={styles.wheelHitbox}
           cx="150"
           cy="150"
           r="150"
           fill="rgba(255,165,0,0)" // color for debug
-          pointerEvents="visiblePainted" // only the circle area is clickable
           onMouseDown={() => {
             setIsMouseDown(true);
             if (!isSpinning) {
