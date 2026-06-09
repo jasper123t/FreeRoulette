@@ -8,6 +8,8 @@ import {
 } from "react";
 import seedrandom from "seedrandom";
 import styles from "./RouletteWheel.module.css";
+import RouletteWheelSVG from "./RouletteWheelSVG";
+import { europeanSequence, americanSequence } from "./RouletteSequences";
 
 const RouletteWheel = forwardRef<
   { spin: () => void },
@@ -117,7 +119,7 @@ const RouletteWheel = forwardRef<
     if (!isLeftHalf) {
       step = -step;
     }
-    setRotation(prev => prev + step);
+    setRotation((prev) => prev + step);
   };
 
   // Expose spin() to parent
@@ -129,12 +131,15 @@ const RouletteWheel = forwardRef<
         setBallAngle((prev) => {
           const current = prev[tableType];
           if (delta === "correct") {
+            const correction =
+              Math.round(current / angleStep) * angleStep - current;
 
-            const correction = Math.round(current / angleStep) * angleStep - current
-
-            const tileNumber = Math.round(((current + correction) % 360) / angleStep)
-            const activeSequence = tableType === "EU" ? europeanSequence : americanSequence
-            const spinResult = activeSequence[tileNumber]
+            const tileNumber = Math.round(
+              ((current + correction) % 360) / angleStep,
+            );
+            const activeSequence =
+              tableType === "EU" ? europeanSequence : americanSequence;
+            const spinResult = activeSequence[tileNumber];
             // Defer result update to next tick to avoid render phase update
             setTimeout(() => setTableResult(spinResult), 0);
             return {
@@ -171,329 +176,46 @@ const RouletteWheel = forwardRef<
     },
   }));
 
-  const center = 150;
-  const slotRadius = 115;
-  const ballX = center;
-  const ballY = center - slotRadius; // 12 o'clock position
-
   return (
-    <div className={styles.wheelContainer}// container
-      style={{
-        width: "100%",
-        maxWidth: "300px",
-        aspectRatio: "1 / 1",
-        borderRadius: "50%",
-        overflow: "hidden", // prevent stretching
-        margin: "0 auto", // center horizontally
-        // backgroundColor: "rgba(0,0,255,1)"
-      }}
-    >
-      <svg // circle
-        ref={svgRef}
-        viewBox="0 0 300 300"
-        style={{
-          width: "100%",
-          height: "100%",
-          transform: `rotate(${rotation}deg)`,
-          transition: isSpinning
-            ? `transform ${spinTimeSecond}s cubic-bezier(0, 1, 0, 1)`
-            : "none",
-          // backgroundColor: "rgba(255, 0, 255, 1)", // color for debugging
-          // outline: "1px solid rgba(255, 128, 255, 0.5)", // box for debugging
+    <div className={styles.wheelContainer}>
+      <RouletteWheelSVG
+        svgRef={svgRef}
+        rotation={rotation}
+        ballAngle={ballAngle}
+        ballPhase={ballPhase}
+        tileCount={tileCount}
+        angleStep={angleStep}
+        isDragging={isDragging}
+        isSpinning={isSpinning}
+        isMouseDown={isMouseDown}
+        tableType={tableType}
+        spinTimeSecond={spinTimeSecond}
+        onMouseDown={() => {
+          setIsMouseDown(true);
+          if (!isSpinning) {
+            setIsDragging(true);
+          }
         }}
-      >
-        <circle // outer ring
-          cx="150"
-          cy="150"
-          r="145"
-          stroke="#D4AF37"
-          strokeWidth="10"
-          fill="none"
-        />
-        {Array.from({ length: tileCount }, (_, i) => { // tiles
-          let fillColor =
-            (i + Number(tableType === "EU")) % 2 === 0 ? "red" : "black";
-          if (tableType === "EU" && i === 0) {
-            fillColor = "green";
+        onTouchStart={() => {
+          setIsMouseDown(true);
+          if (!isSpinning) {
+            setIsDragging(true);
           }
-          if (tableType === "US" && (i === 0 || i === 19)) {
-            fillColor = "green";
+        }}
+        onMouseUp={() => {
+          setIsMouseDown(false);
+        }}
+        onTouchEnd={() => {
+          setIsMouseDown(false);
+        }}
+        onWheel={(e) => {
+          if (!isSpinning) {
+            handleWheel(e);
           }
-
-          let label: string;
-          // label = i.toString(); // for debug
-          if (tableType === "EU") {
-            label = europeanSequence[i];
-          } else {
-            label = americanSequence[i];
-          }
-
-          // place number at 12 o'clock, then rotate to tile angle
-          const textPos = polarToCartesian(150, 150, 135, 0);
-          return (
-            <g key={i}>
-              <path // number part
-                d={describeRingSlice(
-                  150,
-                  150,
-                  125,
-                  145,
-                  i * angleStep,
-                  (i + 1) * angleStep,
-                )}
-                fill={fillColor}
-                stroke="#D4AF37"
-                strokeWidth="2"
-              />
-              <path // slot part
-                d={describeRingSlice(
-                  150,
-                  150,
-                  105,
-                  125,
-                  i * angleStep,
-                  (i + 1) * angleStep,
-                )}
-                fill={fillColor}
-                stroke="#D4AF37"
-                strokeWidth={3}
-              />
-              <text // number text
-                x={textPos.x}
-                y={textPos.y}
-                textAnchor="middle"
-                dominantBaseline="middle"
-                fontSize="12"
-                fill="white"
-                fontWeight="bold"
-                // fontFamily="Arial, sans-serif" // later
-                style={{ userSelect: "none" }}
-                transform={`rotate(${(i + 0.5) * angleStep}, 150, 150)`}
-              >
-                {label}
-              </text>
-            </g>
-          );
-        })}
-        <circle // center for debugging
-          cx="150"
-          cy="150"
-          r="1"
-          fill="rgba(255,0,0,0)"
-        />
-        <g // for spinning ball
-          // className={isSpinning ? "ballAnimate" : ""}
-          style={{
-            // transform: `rotate(${ballAngle[tableType]}deg)`,
-            transformOrigin: "150px 150px",
-            // transition: `transform ${spinTimeSecond}s ease-out`,
-            // transition: `transform ${spinTimeSecond - 0.5}s cubic-bezier(0, 1, 0, 1)`
-
-            // transition: isDragging || !isSpinning
-            //   ? "none"
-            //   : `transform ${spinTimeSecond - 0.5}s cubic-bezier(0, 1, 0, 1)`,
-
-            // animation: `
-            //   ballSpinFast 2s linear forwards,
-            //   ballSpinSlow 3s ease-out forwards,
-            //   ballSpinBounce 2s ease-in-out forwards
-            // `,
-            // animationDelay: "0s, 2s, 5s", // start times for each phase
-
-            transform: `rotate(${ballAngle[tableType]}deg)`,
-            // transition: isDragging || !isSpinning ? "none" : undefined,
-            transition:
-              !isSpinning ? "none" :
-                ballPhase === 1
-                  ? "transform 5s linear"
-                  : ballPhase === 2
-                    ? "transform 9s ease-out"
-                    : ballPhase === 3
-                      ? "transform 1.5s cubic-bezier(.68,-0.55,.27,1.55)" // bounce
-                      : "none",
-
-          }}
-        >
-          <circle // ball
-            cx={ballX}
-            cy={ballY}
-            r={5}
-            fill="white"
-            stroke="black"
-            transform={`rotate(${0.5 * angleStep}, 150, 150)`} // initialise to slot 0
-          />
-        </g>
-        <circle // hitbox circle
-          cx="150"
-          cy="150"
-          r="150"
-          fill="rgba(255,165,0,0)" // color for debug
-          pointerEvents="visiblePainted" // only the circle area is clickable
-          onMouseDown={() => {
-            setIsMouseDown(true);
-            if (!isSpinning) {
-              setIsDragging(true);
-            }
-          }}
-          onTouchStart={() => {
-            setIsMouseDown(true);
-            if (!isSpinning) {
-              setIsDragging(true);
-            }
-          }}
-
-          onMouseUp={() => {
-            setIsMouseDown(false);
-          }}
-          onTouchEnd={() => {
-            setIsMouseDown(false)
-          }}
-
-          onWheel={(e) => {
-            if (!isSpinning) {
-              handleWheel(e);
-            }
-          }}
-
-          style={{
-            cursor: isSpinning
-              ? "not-allowed"
-              : isMouseDown
-                ? "grabbing"
-                : "grab",
-          }}
-        />
-      </svg>
+        }}
+      />
     </div>
   );
 });
 
 export default RouletteWheel;
-
-// Helpers
-const europeanSequence: string[] = [
-  "0",
-  "32",
-  "15",
-  "19",
-  "4",
-  "21",
-  "2",
-  "25",
-  "17",
-  "34",
-  "6",
-  "27",
-  "13",
-  "36",
-  "11",
-  "30",
-  "8",
-  "23",
-  "10",
-  "5",
-  "24",
-  "16",
-  "33",
-  "1",
-  "20",
-  "14",
-  "31",
-  "9",
-  "22",
-  "18",
-  "29",
-  "7",
-  "28",
-  "12",
-  "35",
-  "3",
-  "26",
-];
-
-const americanSequence: string[] = [
-  "0",
-  "28",
-  "9",
-  "26",
-  "30",
-  "11",
-  "7",
-  "20",
-  "32",
-  "17",
-  "5",
-  "22",
-  "34",
-  "15",
-  "3",
-  "24",
-  "36",
-  "13",
-  "1",
-  "00",
-  "27",
-  "10",
-  "25",
-  "29",
-  "12",
-  "8",
-  "19",
-  "31",
-  "18",
-  "6",
-  "21",
-  "33",
-  "16",
-  "4",
-  "23",
-  "35",
-  "14",
-  "2",
-];
-
-function polarToCartesian(cx: number, cy: number, r: number, angle: number) {
-  const rad = ((angle - 90) * Math.PI) / 180.0;
-  return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
-}
-
-function describeRingSlice(
-  cx: number,
-  cy: number,
-  innerR: number,
-  outerR: number,
-  startAngle: number,
-  endAngle: number,
-) {
-  const startOuter = polarToCartesian(cx, cy, outerR, endAngle);
-  const endOuter = polarToCartesian(cx, cy, outerR, startAngle);
-  const startInner = polarToCartesian(cx, cy, innerR, endAngle);
-  const endInner = polarToCartesian(cx, cy, innerR, startAngle);
-  const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
-
-  return [
-    "M",
-    startOuter.x,
-    startOuter.y,
-    "A",
-    outerR,
-    outerR,
-    0,
-    largeArcFlag,
-    0,
-    endOuter.x,
-    endOuter.y,
-    "L",
-    endInner.x,
-    endInner.y,
-    "A",
-    innerR,
-    innerR,
-    0,
-    largeArcFlag,
-    1,
-    startInner.x,
-    startInner.y,
-    "Z",
-  ].join(" ");
-}

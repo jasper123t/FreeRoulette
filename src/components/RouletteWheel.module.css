@@ -62,5 +62,63 @@
 }
 
 .wheelContainer {
-  overscroll-behavior: contain;
+  width: 100%;
+  max-width: 300px;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  overflow: hidden;
+  margin: 0 auto; /* prevent stretching*/
+  overscroll-behavior: contain; /*center horizontally*/
+  /* backgroundColor: "rgba(0,0,255,1)" */
+}
+
+/* SVG - Base styles (dynamic transform and transition applied inline) */
+.wheelSvg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Ball group - Base styles (dynamic transform and transition applied inline) */
+.ballGroup {
+  transform-origin: 150px 150px;
+}
+
+/* Text in wheel numbers - Prevent selection */
+.wheelText {
+  user-select: none;
+}
+
+/* Outer ring circle */
+.outerRing {
+  stroke: #d4af37;
+  stroke-width: 10;
+  fill: none;
+}
+
+/* Slot paths */
+.wheelSlot {
+  stroke: #d4af37;
+  stroke-width: 3;
+}
+
+/* Number paths */
+.wheelNumber {
+  stroke: #d4af37;
+  stroke-width: 2;
+}
+
+/* Ball circle */
+.wheelBall {
+  fill: white;
+  stroke: black;
+}
+
+/* Hitbox circle - Base styles (cursor applied inline based on state) */
+.wheelHitbox {
+  pointer-events: visiblePainted; /*only the circle area is clickable*/
+}
+
+/* Center debug circle */
+.wheelCenter {
+  fill: rgba(255, 0, 0, 0);
 }
