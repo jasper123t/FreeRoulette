@@ -28,7 +28,17 @@ const RouletteWheel = forwardRef<
 
   const tileCount = tableType === "EU" ? 37 : 38;
   const angleStep = 360 / tileCount;
-  const spinTimeSecond = 10;
+  const phase1_Time_Base = 5000;
+  const phase2_Time_Base = 9000;
+  const phase3_Time_Base = 1500;
+
+  // Wheel spin total duration is defined by Phase 1 + (Phase 2 * 0.5)
+  const wheel_Time_Base = phase1_Time_Base + (phase2_Time_Base * 0.5);
+
+  // Global speed multiplier (default to 1)
+  const spd_mul = 1;
+
+  const spinTimeSecond = wheel_Time_Base / 1000 / spd_mul;
   const rand = seedrandom(Date.now().toString());
 
   const [isDragging, setIsDragging] = useState(false);
@@ -160,18 +170,18 @@ const RouletteWheel = forwardRef<
       setTimeout(() => {
         setBallPhase(2);
         updateBallAngle((spinTimeSecond + rand()) * 360);
-      }, 5000);
+      }, phase1_Time_Base / spd_mul);
 
       setTimeout(() => {
         setBallPhase(3);
         updateBallAngle("correct");
-      }, 5000 + 9000);
+      }, (phase1_Time_Base + phase2_Time_Base) / spd_mul);
 
       setTimeout(
         () => {
           onSpinEnd();
         },
-        spinTimeSecond * 1000 + 5000 + 600, // ball stop after 15.5s, button re-enable after 15.6s
+        (phase1_Time_Base + phase2_Time_Base + phase3_Time_Base) / spd_mul + 100 // ball stop after xs, button re-enable after x+0.1s
       );
     },
   }));
